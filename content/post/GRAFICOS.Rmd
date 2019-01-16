@@ -1,0 +1,14 @@
+---
+title: "Gráficos no R"
+author: "Gabriel Danilo Shimizu"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+[Gráfico de Barras](http://127.0.0.1:5423/gráfico_de_barras/)
+
+[Gráfico de Caixas](http://127.0.0.1:5423/gr%C3%A1fico_de_caixas/)
+
+[Gráfico de Regressão](http://127.0.0.1:5423/gráfico_de_regressão/)

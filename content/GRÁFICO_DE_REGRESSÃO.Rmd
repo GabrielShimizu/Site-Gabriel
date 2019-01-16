@@ -1,0 +1,247 @@
+---
+title: "Elaboração de Gráfico de regressão"
+date: 2019-01-11T21:13:14-05:00
+categories: ["R"]
+tags: ["plot"]
+output: 
+  bookdown::html_document2:
+    toc: true
+    number_sections: true
+    fig_caption: true
+    mathjax: local
+    self_contained: false
+---
+
+<style type="text/css">
+
+h1 {color: red;
+    text-align: center;
+    font-size: 35px;
+}
+
+body, td {font-size: 20px;
+      text-align: justify;
+      background-color: lightyellow;
+}
+
+.center_div {
+    border: 2px solid gray;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    background-color: lightyellow;
+    padding: 8px;
+    color: red;
+    text-align: justify;
+}
+
+code.r, pre {font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
+
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, fig.align = "center")
+```
+
+# Conjunto de dados
+
+```{r}
+tratamentos=rep(c(0,2,4,8,16,32,64,128,256),e=4)
+resposta=c(0,1,2,4,
+           8,7,9,10,
+           15,17,18,20,
+           25,26,24,28,
+           36,39,38,40,
+           60,68,65,70,
+           100,110,104,107,
+           150,155,156,159,
+           120,130,126,124)
+## Média e Desvio-padrão (Por Tratamento)
+Dose=c(0,2,4,8,16,32,64,128,256)
+media=tapply(resposta,tratamentos, mean)
+desvio=tapply(resposta,tratamentos,sd)
+```
+
+#Comando básico para gráficos de barras sem edição
+
+```{r}
+plot(media~Dose)
+```
+
+# Edição simples de um gráfico de regressão
+
+```{r}
+plot(media~Dose, 
+        las=1,
+        ylab="Resposta",
+        xlab="Dose")
+```
+
+**Comandos**:
+
+las=1: deixar escala do eixo Y na vertical
+
+xlab e ylab: nomear eixo X e Y
+
+xlim e ylim: escala do eixo X e Y
+
+## Adicionando barras de desvio-padrão
+
+```{r}
+reg=plot(media~Dose, 
+        las=1,
+        ylab="Resposta",
+        xlab="Dose")
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.05,angle=90,code=3)
+```
+
+Adicionando barras de desvio-padrão de largura 0.05 (length=0.05), com angulo de 90$^o$ e tipo de flecha 3 (T ou T invertido)
+
+##Adicionando unidade para o título do eixo Y (Ex. $Kg\ ha^{-1}$) e X(Ex.$Kg\ ha^{-1}\ ano^{-1}$)
+
+```{r}
+reg=plot(media~Dose, 
+        las=1,
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab=expression("Dose"*" "*(kg*" "*ha^-1*" "*ano^-1)))
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.02,angle=90,code=3)
+```
+
+A função expression também pode ser usada para textos em gráficos (Função "text()" - veremos posteriormente).
+
+##Separação de casa decimal por vírgula
+
+```{r}
+options(OutDec=",")
+reg=plot(media~Dose, 
+        las=1,
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab=expression("Dose"*" "*(kg*" "*ha^-1*""*ano^-1)))
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.02,angle=90,code=3)
+```
+
+A função "options(OutDec=",")" converte a casa decimal de todas as saídas posteriores ao comando para vírgula, entretanto a função não altera para gráficos do pacote ggplot2.
+
+## Plotando a curva de Tendência
+
+```{r}
+modelo=lm(media~Dose+I(Dose^2))
+summary(modelo)
+plot(media~Dose, 
+        las=1,ylim=c(0,200),col="red",pch=16,
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab=expression("Dose"*" "*(kg*" "*ha^-1*""*ano^-1)))
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.02,angle=90,code=3)
+curve(modelo$coefficients[1]+modelo$coefficients[2]*x+modelo$coefficients[3]*x^2, add=T,col="blue")
+```
+
+## Identificando pontos de máximo no gráfico
+
+```{r}
+## Para encontrar o ponto de máximo ou mínimo em equação quadrática, fazer derivada primeira de Y=0
+
+(x=-modelo$coefficients[2]/(2*modelo$coefficients[3]))
+
+(y=modelo$coefficients[1]+modelo$coefficients[2]*x+modelo$coefficients[3]*x^2)
+```
+
+```{r}
+plot(media~Dose, 
+        las=1,ylim=c(0,200),col="red",pch=16,
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab=expression("Dose"*" "*(kg*" "*ha^-1*""*ano^-1)))
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.02,angle=90,code=3)
+curve(modelo$coefficients[1]+modelo$coefficients[2]*x+modelo$coefficients[3]*x^2, add=T,col="blue")
+abline(h=y,col="red",lty=2)
+abline(v=x,col="red",lty=2)
+points(x,y,pch=8,col="black")
+```
+
+## Adicionando a equação e o $R^2$ do modelo
+
+```{r}
+plot(media~Dose, 
+        las=1,ylim=c(0,200),col="red",pch=16,
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab=expression("Dose"*" "*(kg*" "*ha^-1*""*ano^-1)))
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.02,angle=90,code=3)
+curve(modelo$coefficients[1]+modelo$coefficients[2]*x+modelo$coefficients[3]*x^2, add=T,col="blue")
+abline(h=y,col="red",lty=2)
+abline(v=x,col="red",lty=2)
+points(x,y,pch=8,col="black")
+text(100,50,expression(Y==7.76013+1.881102*x-0.005567102 *x^2),cex=0.8)
+text(100,40,expression(R^2==1.00),cex=0.8)
+```
+
+# Usando o pacote ggplot2
+
+##Comando básico para gráfico de dispersão pelo ggplot2
+
+```{r}
+library(ggplot2)
+dados=data.frame(Dose,media)
+ggplot(dados, aes(x=Dose, y=media)) + geom_point()
+```
+
+##Editando gráfico
+
+```{r}
+(grafico=ggplot(dados, aes(x=Dose, y=media)) + geom_point(colour="red", size=3, shape=1)+geom_smooth(method="lm", se = F, formula = y~poly(x,2), show.legend = T) +
+  labs(title = "Exemplo de gráfico de regressão no ggplot2",
+       y = expression(Produtividade*(Kg*" "*ha^-1)), x = "Dose",
+       caption = "Fonte: O autor"))
+```
+
+geom_point(colour="red", size=3, shape=1): gráfico de dispersão, com pontos de cor vermelha, de tamanho 3 e formato 2 (Círculo sem preenchimento interno)
+
+geom_smooth(method="lm", se = F, formula = y~poly(x,2)): Comando para plotar curva de tendência para regressão polinomial de grau 2 (Quadrático)
+
+labs= nomear os eixos e títulos dos gráficos
+
+
+##Criando o texto do ajuste do modelo quadrático
+
+```{r}
+texto <- sprintf('y = %.2f + %.2fx %.2fx², r² = %.2f',modelo$coefficients[1],modelo$coefficients[2],modelo$coefficients[3],summary(modelo)$r.squared)
+```
+
+##Plotando o texto no gráfico
+
+```{r}
+(grafico=grafico+geom_text(aes(x=x, y=y, label=texto), hjust=1, vjust=16))
+```
+
+##Removendo cor cinza do fundo
+
+```{r}
+(grafico=grafico+theme_bw())
+```
+
+##Removendo linhas horizontais e verticais
+
+```{r}
+(grafico=grafico+theme_classic())
+```
+```{r}
+(grafico=grafico+theme(axis.title = element_text(size = 12),
+          axis.text = element_text(size = 12)))
+```
+
+##Adicionando linhas de ponto de máximo ou mínimo
+
+```{r}
+(grafico=grafico+geom_vline(xintercept = x, colour="red", linetype="dotted", size=1.2)+geom_hline(yintercept =y,colour='red', linetype='dotted', size=1.3))
+```
+
+##Tipos de linhas
+
+```{r}
+d=data.frame(lt=c("blank", "solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "1F", "F1", "4C88C488", "12345678"))
+ggplot()+scale_x_continuous(name="",limits=c(0,1))+scale_y_discrete(name="linetype")+theme_bw()+theme_classic()+scale_linetype_identity()+geom_segment(data=d, mapping=aes(x=0, xend=1, y=d$lt, yend=d$lt, linetype=d$lt))
+```

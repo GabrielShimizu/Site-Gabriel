@@ -1,0 +1,12 @@
+---
+title: "Estatística experimental"
+author: "Gabriel Danilo Shimizu"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+[Delineamento Inteiramente Casualizado](http://127.0.0.1:5423/dic/)
+
+[Delineamento em Blocos Casualizados](http://127.0.0.1:5423/dbc/)

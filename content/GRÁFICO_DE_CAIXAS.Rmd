@@ -1,0 +1,179 @@
+---
+title: "Elaboração de gráfico de caixas"
+author: "Gabriel Danilo Shimizu"
+date: 2019-01-11T21:13:14-05:00
+categories: ["R"]
+tags: ["boxplot"]
+output: 
+  bookdown::html_document2:
+    toc: true
+    number_sections: true
+    fig_caption: true
+    mathjax: local
+    self_contained: false
+---
+
+<style type="text/css">
+
+h1 {color: red;
+    text-align: center;
+    font-size: 35px;
+}
+
+body, td {font-size: 20px;
+      text-align: justify;
+      background-color: lightyellow;
+}
+
+.center_div {
+    border: 2px solid gray;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    background-color: lightyellow;
+    padding: 8px;
+    color: red;
+    text-align: justify;
+}
+
+code.r, pre {font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, fig.align = "center", warning = FALSE,message = FALSE)
+```
+
+# Conjunto de dados
+```{r}
+tratamentos=rep(c(paste("T",1:5)),e=4)
+resposta=c(100,120,110,90,
+        150,145,149,165,
+        150,144,134,139,
+        220,206,210,210,
+        266,249,248,260)
+## Média e Desvio-padrão (Por Tratamento)
+media=tapply(resposta,tratamentos, mean)
+desvio=tapply(resposta,tratamentos,sd)
+```
+
+# Comando básico para gráficos de caixas sem edição
+
+Obs. Vamos usar o boxplot do pacote car (Boxplot)
+```{r}
+library(car)
+Boxplot(resposta~tratamentos)
+```
+
+# Edição simples de um gráfico de caixas
+
+```{r}
+Boxplot(resposta~tratamentos, 
+        las=1,
+        col="lightyellow",
+        ylab="Resposta",
+        xlab="Tratamentos",
+        ylim=c(50,300))
+```
+
+**Comandos**:
+
+las=1: deixar escala do eixo Y na vertical
+
+col="cor": mudar cor das barras (Ex. "red","blue","green" ou gray.colors(quantidade de tonalidades) para escala cinza ou rainbow(quantidade de cores) para escala colorida. Também é possível específicar a cor de cada barra (col=c("red","green","yellow","gray","blue"))).
+
+xlab e ylab: nomear eixo X e Y
+
+xlim e ylim: escala do eixo X e Y
+
+##Adicionando a média
+
+```{r}
+Boxplot(resposta~tratamentos,
+        las=1,
+        col="lightyellow",
+        ylab="Resposta",
+        xlab="Tratamentos",
+        ylim=c(50,300))
+points(media, pch=8,col="red")
+```
+
+##Adicionando unidade para o título do eixo Y (Ex. $Kg\ ha^{-1}$)
+
+```{r}
+Boxplot(resposta~tratamentos,
+        las=1,
+        col="lightyellow",
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab="Tratamentos",
+        ylim=c(50,300))
+points(media, pch=8,col="red")
+```
+
+##Adicionando a média dos tratamentos acima das barras
+
+```{r}
+Boxplot(resposta~tratamentos,
+        las=1,
+        col="lightyellow",
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab="Tratamentos",
+        ylim=c(50,300))
+points(media, pch=8,col="red")
+text(c(1:5),media+desvio+10,media)
+```
+
+##Separação de casa decimal por vírgula
+
+```{r}
+options(OutDec=",")
+Boxplot(resposta~tratamentos,
+        las=1,
+        col="lightyellow",
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab="Tratamentos",
+        ylim=c(50,300))
+points(media, pch=8,col="red")
+text(c(1:5),media+desvio+10,media)
+```
+
+## Adicionando letras do teste de comparação (Tukey)
+
+```{r}
+tukey=c("d","c","c","b","a")
+options(OutDec=",")
+Boxplot(resposta~tratamentos,
+        las=1,
+        col="lightyellow",
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab="Tratamentos",
+        ylim=c(50,300))
+points(media, pch=8,col="red")
+text(c(1:5),media+desvio+10,paste(round(media,0),tukey))
+```
+
+# GRÁFICO DE CAIXAS PELO PACOTE ggplot2
+
+```{r, fig.align='center'}
+library(ggplot2)
+library(plotly)
+data=data.frame(tratamentos,resposta)
+box=ggplot(data,aes(x=tratamentos,y=resposta))+geom_boxplot(colour="black")+theme_bw()+theme_classic()+stat_summary(fun.y=mean,shape=4, geom="point", size=2, colour="red")+labs(title = "Exemplo de gráfico de caixas no ggplot2",y = "Produtividade(Kg/ha)", x = "Tratamentos",caption = "Fonte: O autor")+
+  stat_boxplot(geom ='errorbar')
+(box=ggplotly(box))
+```
+
+# Melhor forma de salvar o gráfico
+
+A melhor forma de salvar o gráfico no R é usando a extensão tiff, pois não perde qualidade no office (Word, Excel, Powerpoint).
+
+tiff("nome do gráfico.tif",width = 8, 
+     height = 5, units = 'in', res = 300)
+
+dev.off()
+

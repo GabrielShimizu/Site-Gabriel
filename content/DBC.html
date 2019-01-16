@@ -1,0 +1,474 @@
+---
+title: "Experimento em Delineamento em Blocos Casualizados"
+author: "Gabriel Danilo Shimizu"
+date: 2019-01-11T21:13:14-05:00
+categories: ["R"]
+tags: ["dvc"]
+output: 
+  bookdown::html_document2:
+    toc: true
+    number_sections: true
+    fig_caption: true
+    mathjax: local
+    self_contained: false
+---
+
+
+
+<style type="text/css">
+
+h1 {color: red;
+    text-align: center;
+    font-size: 35px;
+}
+
+body, td {font-size: 20px;
+      text-align: justify;
+      background-color: lightyellow;
+}
+
+.center_div {
+    border: 2px solid gray;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    background-color: lightyellow;
+    padding: 8px;
+    color: red;
+    text-align: justify;
+}
+
+code.r, pre {font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
+</style>
+<p>Um experimento foi realizado com o intuito de avaliar a produtividade de 15 cultivares comerciais de soja no munícipio de Londrina-PR. O experimento foi instalado em Delineamento em blocos casualizados com 3 repetições por tratamento.</p>
+<div id="estatistica-descritiva" class="section level1">
+<h1>Estatística descritiva</h1>
+<pre class="r"><code>Média = with(dados, mean(resp))
+Variância = with(dados, var(resp))
+Desvio = with(dados, sd(resp))
+CV = Desvio / Média * 100
+
+desc = cbind(Média, Variância, Desvio, CV)
+rownames(desc) = &#39;Produvidade (Kg/ha)&#39;
+kable(round(desc,2), align=&quot;l&quot;,caption=&quot;Análise descritiva&quot;, format=&quot;pandoc&quot;, format.args = list(big.mark=&quot;.&quot;))</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-2">Table 1: </span>Análise descritiva</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Média</th>
+<th align="left">Variância</th>
+<th align="left">Desvio</th>
+<th align="left">CV</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Produvidade (Kg/ha)</td>
+<td align="left">2.485,18</td>
+<td align="left">141.049,6</td>
+<td align="left">375,57</td>
+<td align="left">15,11</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="por-cultivar" class="section level1">
+<h1>Por Cultivar</h1>
+<pre class="r"><code>Médias = with(dados, tapply(resp, Tratamento, mean))
+Variâncias = with(dados, tapply(resp, Tratamento, var))
+Desvios = with(dados, tapply(resp, Tratamento, sd))
+CV = Desvios / Médias * 100
+Desc = cbind(Médias, Variâncias, Desvios, CV)
+kable(round(Desc,2),align=&quot;l&quot;, format.args = list(big.mark=&quot;.&quot;), caption=&quot;Análise descritiva \\label{tab:MedVar}&quot;, format=&quot;pandoc&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-3">Table 2: </span>Análise descritiva </caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Médias</th>
+<th align="left">Variâncias</th>
+<th align="left">Desvios</th>
+<th align="left">CV</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>T 1</td>
+<td align="left">2.543,21</td>
+<td align="left">84.477,87</td>
+<td align="left">290,65</td>
+<td align="left">11,43</td>
+</tr>
+<tr class="even">
+<td>T 10</td>
+<td align="left">2.055,55</td>
+<td align="left">45.611,24</td>
+<td align="left">213,57</td>
+<td align="left">10,39</td>
+</tr>
+<tr class="odd">
+<td>T 11</td>
+<td align="left">2.407,41</td>
+<td align="left">12.689,35</td>
+<td align="left">112,65</td>
+<td align="left">4,68</td>
+</tr>
+<tr class="even">
+<td>T 12</td>
+<td align="left">2.987,65</td>
+<td align="left">220.966,26</td>
+<td align="left">470,07</td>
+<td align="left">15,73</td>
+</tr>
+<tr class="odd">
+<td>T 13</td>
+<td align="left">2.506,18</td>
+<td align="left">156.492,52</td>
+<td align="left">395,59</td>
+<td align="left">15,78</td>
+</tr>
+<tr class="even">
+<td>T 14</td>
+<td align="left">2.222,22</td>
+<td align="left">14.746,18</td>
+<td align="left">121,43</td>
+<td align="left">5,46</td>
+</tr>
+<tr class="odd">
+<td>T 15</td>
+<td align="left">2.524,69</td>
+<td align="left">117.397,29</td>
+<td align="left">342,63</td>
+<td align="left">13,57</td>
+</tr>
+<tr class="even">
+<td>T 2</td>
+<td align="left">2.555,55</td>
+<td align="left">9.602,62</td>
+<td align="left">97,99</td>
+<td align="left">3,83</td>
+</tr>
+<tr class="odd">
+<td>T 3</td>
+<td align="left">3.012,35</td>
+<td align="left">1.829,28</td>
+<td align="left">42,77</td>
+<td align="left">1,42</td>
+</tr>
+<tr class="even">
+<td>T 4</td>
+<td align="left">2.444,44</td>
+<td align="left">21.946,94</td>
+<td align="left">148,15</td>
+<td align="left">6,06</td>
+</tr>
+<tr class="odd">
+<td>T 5</td>
+<td align="left">2.802,47</td>
+<td align="left">354.364,77</td>
+<td align="left">595,29</td>
+<td align="left">21,24</td>
+</tr>
+<tr class="even">
+<td>T 6</td>
+<td align="left">2.172,84</td>
+<td align="left">144.831,90</td>
+<td align="left">380,57</td>
+<td align="left">17,51</td>
+</tr>
+<tr class="odd">
+<td>T 7</td>
+<td align="left">2.253,09</td>
+<td align="left">115.341,14</td>
+<td align="left">339,62</td>
+<td align="left">15,07</td>
+</tr>
+<tr class="even">
+<td>T 8</td>
+<td align="left">2.271,60</td>
+<td align="left">58.412,64</td>
+<td align="left">241,69</td>
+<td align="left">10,64</td>
+</tr>
+<tr class="odd">
+<td>T 9</td>
+<td align="left">2.518,52</td>
+<td align="left">92.934,47</td>
+<td align="left">304,85</td>
+<td align="left">12,10</td>
+</tr>
+</tbody>
+</table>
+<p>As médias e as variâncias estão apresentadas na Tabela . Nota-se uma variação nos valores médios, sendo a menor média igual a <span class="math inline">\(2055,55 \; cm\)</span> e a maior média de <span class="math inline">\(3012,35 \; s\)</span>. Já em relação às variâncias, o menor valor é de <span class="math inline">\(1829,28 \; s^2\)</span> e a maior variablidade de <span class="math inline">\(3,5436477\times 10^{5} \; s^2\)</span>. Portanto, a razão entre as variâncias é de <span class="math inline">\(193,72 \; vezes\)</span>.</p>
+</div>
+<div id="grafico-de-caixas" class="section level1">
+<h1>Gráfico de Caixas</h1>
+<pre class="r"><code>par(bty=&#39;l&#39;, mai=c(1, 1, .2, .2))
+par(cex=0.7)
+caixas=with(dados, car::Boxplot(resp ~ dados$TRAT, vertical=T,las=1, col=&#39;Lightyellow&#39;,
+                    xlab=X, ylab=Y))
+mediab=tapply(dados$resp, dados$ TRAT, mean)
+points(mediab, pch=&#39;+&#39;, cex=1.5, col=&#39;red&#39;)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-4"></span>
+<img src="/DBC_files/figure-html/unnamed-chunk-4-1.png" alt="Gráfico de caixas" width="672" />
+<p class="caption">
+Figure 1: Gráfico de caixas
+</p>
+</div>
+<pre class="r"><code>names(Desvios)[which.min(Desvios)]</code></pre>
+<p>Não Observa-se <em>outliers</em>. Há maior variabilidade em T 5 e menorr em T 3, com 595,285 e 42,77, respectivamente. Há evidências de diferença entre as médias dos tratamentos.</p>
+</div>
+<div id="analise-de-variancia" class="section level1">
+<h1>Análise de Variância</h1>
+<p><strong>Hipóteses</strong><br />
+<span class="math inline">\(H_0: \mu_1=\mu_2=\mu_3= \cdots =\mu_15\)</span><br />
+<span class="math inline">\(H_1: \mu_i\neq\mu&#39;_i\qquad i \neq i&#39;\)</span></p>
+<pre class="r"><code>mod = with(dados, aov(resp ~ Tratamento+bloco))
+av=anova(mod)
+names(av)=c(&quot;GL&quot;,&quot;SQ&quot;,&quot;QM&quot;,&quot;Teste F&quot;, &quot;p-valor&quot;)
+kable(av, align = &quot;l&quot;,  caption=&quot;Analise de variância&quot;, format=&quot;pandoc&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-5">Table 3: </span>Analise de variância</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">GL</th>
+<th align="left">SQ</th>
+<th align="left">QM</th>
+<th align="left">Teste F</th>
+<th align="left">p-valor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Tratamento</td>
+<td align="left">14</td>
+<td align="left">3302891,5</td>
+<td align="left">235920,82</td>
+<td align="left">2,545837</td>
+<td align="left">0,0171400</td>
+</tr>
+<tr class="even">
+<td>bloco</td>
+<td align="left">2</td>
+<td align="left">308550,2</td>
+<td align="left">154275,11</td>
+<td align="left">1,664793</td>
+<td align="left">0,2074184</td>
+</tr>
+<tr class="odd">
+<td>Residuals</td>
+<td align="left">28</td>
+<td align="left">2594738,7</td>
+<td align="left">92669,24</td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<p>Como p-valor calculado (p=<span class="math inline">\(0,01714\)</span>) é menor que o nível de significância adotado (<span class="math inline">\(p=0,05\)</span>), rejeita-se <span class="math inline">\(H0\)</span>. Logo, ao menos dois tratamentos se diferem entre si</p>
+</div>
+<div id="normalidade-dos-erros" class="section level1">
+<h1>Normalidade dos erros</h1>
+<p><strong>Hipóteses</strong><br />
+<span class="math inline">\(H_0\)</span>: Os erros seguem distribuição normal<br />
+<span class="math inline">\(H_1\)</span>: Os erros não seguem distribuição normal</p>
+<pre class="r"><code>(norm=shapiro.test(mod$res))</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  mod$res
+## W = 0,97989, p-value = 0,6151</code></pre>
+<p>Como p-valor calculado (p=<span class="math inline">\(0,6151\)</span>) é maior que o nível de significância adotado (<span class="math inline">\(\alpha=0,05\)</span>), não rejeita-se <span class="math inline">\(H_O\)</span>. Logo, os erros seguem distribuição normal.</p>
+<pre class="r"><code>hnp::hnp(mod, las=1, xlab=&quot;Quantis teóricos&quot;, pch=16)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-7"></span>
+<img src="/DBC_files/figure-html/unnamed-chunk-7-1.png" alt="Gráfico QQplot \label{Fig:QQ}" width="672" />
+<p class="caption">
+Figure 2: Gráfico QQplot 
+</p>
+</div>
+</div>
+<div id="homogeneidade-de-variancias" class="section level1">
+<h1>Homogeneidade de variâncias</h1>
+<p><strong>Hipóteses</strong><br />
+<span class="math inline">\(H_0\)</span>: As variâncias são homogêneas<br />
+<span class="math inline">\(H_1\)</span>: As variâncias não são homogêneas</p>
+<pre class="r"><code>(homog=with(dados, bartlett.test(mod$res ~ Tratamento)))</code></pre>
+<pre><code>## 
+##  Bartlett test of homogeneity of variances
+## 
+## data:  mod$res by Tratamento
+## Bartlett&#39;s K-squared = 15,293, df = 14, p-value = 0,3584</code></pre>
+<p>Como p-valor calculado (p=<span class="math inline">\(0,3584\)</span>) é maior que o nível de significância adotado (<span class="math inline">\(p=0,05\)</span>), não rejeita-se <span class="math inline">\(H_0\)</span>. Logo, as variâncias são homogêneas.</p>
+</div>
+<div id="independencia-dos-erros" class="section level1">
+<h1>Independência dos erros</h1>
+<p><strong>Hipóteses</strong><br />
+<span class="math inline">\(H_0\)</span>: Os erros são independentes<br />
+<span class="math inline">\(H_1\)</span>: Os erros não são independentes</p>
+<pre class="r"><code>(ind=lmtest::dwtest(mod))</code></pre>
+<pre><code>## 
+##  Durbin-Watson test
+## 
+## data:  mod
+## DW = 2,9611, p-value = 0,9272
+## alternative hypothesis: true autocorrelation is greater than 0</code></pre>
+<p>Como p-valor calculado (p=<span class="math inline">\(0,9272\)</span>) é maior que o nível de significância adotado (<span class="math inline">\(p=0,05\)</span>), não rejeita-se <span class="math inline">\(H_0\)</span>. Logo, os erros são independentes. A Figura  apresenta os resíduos brutos. Percebe-se que os resíduos estão distribuídos de forma totalmente aleatória, evidenciando a sua independência.</p>
+<pre class="r"><code>plot(mod$res, las=1, pch=19, col=&#39;red&#39;, ylab=&#39;Resíduos brutos&#39;)
+abline(h=0)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-10"></span>
+<img src="/DBC_files/figure-html/unnamed-chunk-10-1.png" alt="Gráfico de resíduos brutos \label{fig:res}" width="672" />
+<p class="caption">
+Figure 3: Gráfico de resíduos brutos 
+</p>
+</div>
+</div>
+<div id="teste-de-comparacoes" class="section level1">
+<h1>Teste de comparações</h1>
+<pre class="r"><code>mod.1 = easyanova::ea1(dados[,c(1,3,4)], design=2, plot=2)</code></pre>
+<pre class="r"><code>tabela=cbind(mod.1$`Adjusted means`[1],
+             mod.1$`Adjusted means`[2],
+             mod.1$`Adjusted means`[8])
+names(tabela)[1:3]=c(&quot;Cultivar&quot;,&quot;Média&quot;,&quot;&quot;)
+kable(tabela, align = &#39;l&#39;, booktabs=T, caption=&quot;Teste de comparação de Scott-Knott&quot;, format=&quot;pandoc&quot;, format.args = list(big.mark=&quot;.&quot;))</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-11">Table 4: </span>Teste de comparação de Scott-Knott</caption>
+<thead>
+<tr class="header">
+<th align="left">Cultivar</th>
+<th align="left">Média</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">T 3</td>
+<td align="left">3.012,347</td>
+<td>a</td>
+</tr>
+<tr class="even">
+<td align="left">T 12</td>
+<td align="left">2.987,653</td>
+<td>a</td>
+</tr>
+<tr class="odd">
+<td align="left">T 5</td>
+<td align="left">2.802,470</td>
+<td>a</td>
+</tr>
+<tr class="even">
+<td align="left">T 2</td>
+<td align="left">2.555,553</td>
+<td>b</td>
+</tr>
+<tr class="odd">
+<td align="left">T 1</td>
+<td align="left">2.543,207</td>
+<td>b</td>
+</tr>
+<tr class="even">
+<td align="left">T 15</td>
+<td align="left">2.524,690</td>
+<td>b</td>
+</tr>
+<tr class="odd">
+<td align="left">T 9</td>
+<td align="left">2.518,520</td>
+<td>b</td>
+</tr>
+<tr class="even">
+<td align="left">T 13</td>
+<td align="left">2.506,177</td>
+<td>b</td>
+</tr>
+<tr class="odd">
+<td align="left">T 4</td>
+<td align="left">2.444,443</td>
+<td>b</td>
+</tr>
+<tr class="even">
+<td align="left">T 11</td>
+<td align="left">2.407,407</td>
+<td>b</td>
+</tr>
+<tr class="odd">
+<td align="left">T 8</td>
+<td align="left">2.271,603</td>
+<td>b</td>
+</tr>
+<tr class="even">
+<td align="left">T 7</td>
+<td align="left">2.253,087</td>
+<td>b</td>
+</tr>
+<tr class="odd">
+<td align="left">T 14</td>
+<td align="left">2.222,220</td>
+<td>b</td>
+</tr>
+<tr class="even">
+<td align="left">T 6</td>
+<td align="left">2.172,840</td>
+<td>b</td>
+</tr>
+<tr class="odd">
+<td align="left">T 10</td>
+<td align="left">2.055,553</td>
+<td>b</td>
+</tr>
+</tbody>
+</table>
+<div id="usando-o-pacote-expdes.pt" class="section level2">
+<h2>Usando o pacote ExpDes.pt</h2>
+<pre class="r"><code>library(ExpDes.pt)
+with(dados,dbc(Tratamento, bloco,resp, mcomp=&quot;tukey&quot;))</code></pre>
+<pre><code>## ------------------------------------------------------------------------
+## Quadro da analise de variancia
+## ------------------------------------------------------------------------
+##            GL      SQ QM     Fc   Pr&gt;Fc
+## Tratamento 14 3302891    2,5458 0,01714
+## Bloco       2  308550    1,6648 0,20742
+## Residuo    28 2594739                  
+## Total      44 6206180                  
+## ------------------------------------------------------------------------
+## CV = 12,25 %
+## 
+## ------------------------------------------------------------------------
+## Teste de normalidade dos residuos 
+## valor-p:  0,6150834 
+## De acordo com o teste de Shapiro-Wilk a 5% de significancia, os residuos podem ser considerados normais.
+## ------------------------------------------------------------------------
+## 
+## ------------------------------------------------------------------------
+## Teste de homogeneidade de variancia 
+## valor-p:  0,1187836 
+## De acordo com o teste de oneillmathews a 5% de significancia, as variancias podem ser consideradas homogeneas.
+## ------------------------------------------------------------------------
+## 
+## Teste de Tukey
+## ------------------------------------------------------------------------
+## Grupos Tratamentos Medias
+## a     T 3     3012,347 
+## a     T 12    2987,653 
+## ab    T 5     2802,47 
+## ab    T 2     2555,553 
+## ab    T 1     2543,207 
+## ab    T 15    2524,69 
+## ab    T 9     2518,52 
+## ab    T 13    2506,177 
+## ab    T 4     2444,443 
+## ab    T 11    2407,407 
+## ab    T 8     2271,603 
+## ab    T 7     2253,087 
+## ab    T 14    2222,22 
+## ab    T 6     2172,84 
+##  b    T 10    2055,553 
+## ------------------------------------------------------------------------</code></pre>
+</div>
+</div>

@@ -1,0 +1,237 @@
+---
+title: "Delineamento Inteiramente casualizado"
+author: "Gabriel Danilo Shimizu"
+date: 2019-01-11T21:13:14-05:00
+categories: ["R"]
+tags: ["dic"]
+output: 
+  bookdown::html_document2:
+    toc: true
+    number_sections: true
+    fig_caption: true
+    mathjax: local
+    self_contained: false
+---
+
+<style type="text/css">
+
+h1 {color: red;
+    text-align: center;
+    font-size: 35px;
+}
+
+body, td {font-size: 20px;
+      text-align: justify;
+      background-color: lightyellow;
+}
+
+.center_div {
+    border: 2px solid gray;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    background-color: lightyellow;
+    padding: 8px;
+    color: red;
+    text-align: justify;
+}
+
+code.r, pre {font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(knitr)
+options(OutDec = ",", knitr.kable.NA="")
+```
+
+# Conjunto de dados
+
+```{r}
+tratamentos=rep(c(paste("T",1:5)),e=4)
+resposta=c(100,120,110,90,
+        150,145,149,165,
+        150,144,134,139,
+        220,206,210,210,
+        266,249,248,260)
+```
+
+# Análise Descritiva
+
+```{r}
+## Média e Desvio-padrão (Por Tratamento)
+"Média"=tapply(resposta,tratamentos, mean)
+"Desvio-padrão"=tapply(resposta,tratamentos,sd)
+"Variância"=tapply(resposta,tratamentos, var)
+"Máximo"=tapply(resposta,tratamentos,max)
+"Mínimo"=tapply(resposta,tratamentos, min)
+Mediana=tapply(resposta,tratamentos,median)
+descritiva=cbind(`Média`,
+                 `Desvio-padrão`, 
+                 `Variância`, 
+                 `Máximo`, 
+                 `Mínimo`, 
+                 Mediana)
+```
+
+```{r, fig.align='center'}
+kable(round(descritiva,2), align="l", caption = "Análise Descritiva dos dados por tratamento \\label{Fig1}")
+```
+
+# Gráfico de Caixas (*Boxplot*)
+
+```{r, fig.align='center', fig.cap="Gráfico de caixas  (*Boxplot*) \\label{Fig3}"}
+car::Boxplot(resposta~tratamentos,
+             las=1,
+             col="lightblue", xlab="",
+             ylab=expression("Produtividade"*" "* (Kg*" "*ha^-1)))
+points(`Média`,col="red", pch=8)
+stripchart(resposta ~ tratamentos, pch=20, vertical=T, cex=1, col="blue", add=T)
+```
+
+# Análise de Variância
+
+Hipóteses:
+
+\begin{eqnarray*}
+\left\{
+\begin{array}{ll}
+H_0: & \mu_1 = \mu_2 = \mu_3 =\mu_4 =\mu_5\\[.2cm]
+H_1: & \mu_i \neq \mu_i' \qquad i \neq i'.
+\end{array}
+\right.
+\end{eqnarray*}
+
+$H_0: \mu_1=\mu_2=\mu_3=\mu_4=\mu_5$\
+$H_1: \mu_i\neq\mu'_i \qquad i\neq i'$
+
+```{r}
+modelo=aov(resposta~tratamentos)
+anova=anova(modelo)
+```
+
+```{r}
+kable(anova, align="l", caption = "Análise de Variância \\label{Fig2}")
+```
+
+Como o p-valor calculado ($p=`r anova[1,5]`$) é `r ifelse(anova[1,5]>0.05, "maior", "menor")` que o nível de significância adotado ($\alpha=0,05$), `r ifelse(anova[1,5]>0.05, "não rejeita", "rejeita")` $H_0$. Logo, `r ifelse(anova[1,5]>0.05, "os tratamentos não se diferem", "ao menos dois tratamentos se diferem entre si")`.
+
+# Pressuposições da Análise de Variância
+
+## Normalidade dos erros
+
+\begin{eqnarray*}
+\left\{
+\begin{array}{ll}
+H_0: & \mbox{ Os erros têm distribuição normal} \\[.2cm]
+H_1: & \mbox{ Os erros não têm distribuição normal}.
+\end{array}
+\right.
+\end{eqnarray*}
+
+```{r}
+(norm=shapiro.test(modelo$res))
+```
+
+Como p-valor calculado ($p=`r norm$p.value`$) é `r ifelse(norm$p.value>0.05, "maior", "menor")` que o nível de significância adotado ($\alpha=0,05$), `r ifelse(norm$p.value>0.05, "não se rejeita", "rejeita")` $H_0$. Logo, os erros `r ifelse(norm$p.value>0.05, "seguem", "não seguem")` distribuição normal.
+
+Obs. No texto acima, o p-valor, e a rejeição ou não da hipótese foram gerados pelo comando do R diretamente no texto, com os seguintes comandos. 
+
+```{r}
+#$p=`r norm$p.value`$
+```
+
+```{r}
+#`r ifelse(norm$p.value>0.05, "maior", "menor")`
+```
+
+```{r}
+#`r ifelse(norm$p.value>0.05, "seguem", "não seguem")`
+```
+
+Obs. Desconsiderar "#", os demais pressupostos também foram utilizados o mesmo princípio do "ifelse" nos textos
+
+### Gráfico de normalidade
+
+```{r, fig.cap="Gráfico de normalidade \\label{Fig2}", results='hide',fig.show='hide'}
+HNP=hnp::hnp(modelo, paint.on=T, col="red" , las=1, pch=8)
+```
+
+```{r, fig.cap="Gráfico de normalidade \\label{Fig2}", results='hide', fig.align='center'}
+plot(HNP,lty=c(2,3,2),  col=c(2,1,2,1))
+```
+
+## Homogeneidade de variâncias
+
+\begin{eqnarray*}
+\left\{
+\begin{array}{ll}
+H_0: & \mbox{ As variâncias são homogêneas} \\[.2cm]
+H_1: & \mbox{ As variâncias não são homogêneas}.
+\end{array}
+\right.
+\end{eqnarray*}
+
+```{r}
+(homog=bartlett.test(modelo$res~tratamentos))
+```
+
+Como p-valor calculado ($p=`r homog$p.value`$) é `r ifelse(homog$p.value>0.05, "maior", "menor")` que o nível de significância adotado ($\alpha=0,05$), `r ifelse(homog$p.value>0.05, "não se rejeita", "rejeita")` $H_0$. Logo, as variâncias `r ifelse(homog$p.value>0.05, "são", "não são")` homogêneas.
+
+## Independências dos erros
+
+\begin{eqnarray*}
+\left\{
+\begin{array}{ll}
+H_0: & \mbox{ Os erros são independentes;} \\[.2cm]
+H_1: & \mbox{ Os erros não são independentes.}
+\end{array}
+\right.
+\end{eqnarray*}
+
+```{r}
+library(lmtest)
+ind=dwtest(modelo)
+```
+
+Como p-valor calculado ($p=`r ind$p.value`$) é `r ifelse(ind$p.value>0.05, "maior", "menor")` que o nível de significância adotado ($\alpha=0,05$), `r ifelse(ind$p.value>0.05, "não se rejeita", "rejeita")` $H_0$. Logo, os erros `r ifelse(ind$p.value>0.05, "são", "não são")` independentes. A Figura \ref{Fig3} apresenta o gráfico dos resíduos brutos. Percebe-se que os resíduos estão distribuídos de forma totalmente aleatório, evidenciando a independência dos erros.
+
+```{r, fig.cap="Resíduos brutos \\label{Fig3}", fig.pos="H", fig.align='center'}
+plot(modelo$res, col="blue",
+     las=1, pch=16,
+     ylab="Residuos brutos")
+abline(h=0, col="red", lwd=2)
+```
+
+# Teste de Comparação Múltipla de Tukey
+
+```{r, results='hide', fig.show='hide'}
+(dados=data.frame(tratamentos,resposta))
+mod1=easyanova::ea1(dados, design = 1)
+tabela=cbind(mod1$Means[1],
+      mod1$Means[2], 
+      mod1$Means[4])
+names(tabela)[1:3]=c("Tratamento","Média","")
+tabela
+```
+
+```{r}
+kable(tabela, align = "l", caption = "Teste de Tukey \\label{tabt}")
+```
+
+```{r, fig.align='center', fig.cap="Gráfico de caixas  (*Boxplot*) com letras do Teste de Tukey \\label{Fig4}"}
+tukey=c("d","c","c","b","a")
+box=car::Boxplot(resposta~tratamentos,
+             las=1,ylim=c(50,300),
+             col="lightblue", xlab="",
+             ylab=expression("Produtividade"*" "* (Kg*" "*ha^-1)))
+points(`Média`,col="red", pch=8)
+text(c(1:5),
+     `Média`+`Desvio-padrão`+10,
+     paste(`Média`,tukey))
+```

@@ -1,0 +1,200 @@
+---
+title: "Experimento em Delineamento em Blocos Casualizados"
+author: "Gabriel Danilo Shimizu"
+date: 2019-01-11T21:13:14-05:00
+categories: ["R"]
+tags: ["dvc"]
+output: 
+  bookdown::html_document2:
+    toc: true
+    number_sections: true
+    fig_caption: true
+    mathjax: local
+    self_contained: false
+---
+
+<style type="text/css">
+
+h1 {color: red;
+    text-align: center;
+    font-size: 35px;
+}
+
+body, td {font-size: 20px;
+      text-align: justify;
+      background-color: lightyellow;
+}
+
+.center_div {
+    border: 2px solid gray;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    background-color: lightyellow;
+    padding: 8px;
+    color: red;
+    text-align: justify;
+}
+
+code.r, pre {font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(knitr)
+options(OutDec = ",", knitr.kable.NA="")
+```
+
+Um experimento foi realizado com o intuito de avaliar a produtividade de 15 cultivares comerciais de soja no munícipio de Londrina-PR. O experimento foi instalado em Delineamento em blocos casualizados com 3 repetições por tratamento.
+
+```{r, include=FALSE}
+PRO=c(2444.44,2870.37,2314.81,
+        2629.63,2444.44,2592.59,
+        2962.96,3037.04,3037.04,
+        2592.59,2296.30,2444.44,
+        2370.37,3481.48,2555.56,
+        1981.48,2611.11,1925.93,
+        1870.37,2518.52,2370.37,
+        2462.96,2351.85,2000.00,
+        2703.70,2685.19,2166.67,
+        2129.63,2222.22,1814.81,
+        2537.04,2351.85,2333.33,
+        3370.37,2462.96,3129.63,
+        2666.67,2796.30,2055.56,
+        2333.33,2240.74,2092.59,
+        2703.70,2129.63,2740.74)
+Cultivares=rep(c(paste("T",1:15)),e=3)
+Bloco=rep(c(paste("B",1:3)),15)
+Tratamento = as.factor(Cultivares)
+bloco=as.factor(Bloco)
+dados = data.frame(Tratamento, TRAT=Tratamento, bloco,resp=PRO)
+dados = dados[order(dados$Tratamento), ]
+names(dados)
+X = 'Cultivares de soja'
+(Y = expression(Produtividade (Kg.ha^-1)))
+alfa="0,05"
+```
+
+# Estatística descritiva
+
+```{r}
+Média = with(dados, mean(resp))
+Variância = with(dados, var(resp))
+Desvio = with(dados, sd(resp))
+CV = Desvio / Média * 100
+
+desc = cbind(Média, Variância, Desvio, CV)
+rownames(desc) = 'Produvidade (Kg/ha)'
+kable(round(desc,2), align="l",caption="Análise descritiva", format="pandoc", format.args = list(big.mark="."))
+```
+
+# Por Cultivar
+
+```{r}
+Médias = with(dados, tapply(resp, Tratamento, mean))
+Variâncias = with(dados, tapply(resp, Tratamento, var))
+Desvios = with(dados, tapply(resp, Tratamento, sd))
+CV = Desvios / Médias * 100
+Desc = cbind(Médias, Variâncias, Desvios, CV)
+kable(round(Desc,2),align="l", format.args = list(big.mark="."), caption="Análise descritiva \\label{tab:MedVar}", format="pandoc")
+```
+
+As médias e as variâncias estão apresentadas na Tabela \ref{tab:MedVar}. Nota-se uma variação nos valores médios, sendo a menor média igual a $`r round(min(Médias), 2)` \; cm$ e a maior média de $`r round(max(Médias), 2)` \; s$. Já em relação às variâncias, o menor valor é de $`r round(min(Variâncias), 2)` \; s^2$ e a maior variablidade de $`r round(max(Variâncias), 2)` \; s^2$. Portanto, a razão entre as variâncias é de $`r round(max(Variâncias)/min(Variâncias),2)` \; vezes$.
+
+# Gráfico de Caixas
+
+```{r, results='hide', fig.cap="Gráfico de caixas", fig.pos="H", fig.align='center'}
+par(bty='l', mai=c(1, 1, .2, .2))
+par(cex=0.7)
+caixas=with(dados, car::Boxplot(resp ~ dados$TRAT, vertical=T,las=1, col='Lightyellow',
+                    xlab=X, ylab=Y))
+mediab=tapply(dados$resp, dados$ TRAT, mean)
+points(mediab, pch='+', cex=1.5, col='red')
+names(Desvios)[which.min(Desvios)]
+```
+
+Não Observa-se *outliers*. Há maior variabilidade em `r names(Desvios)[which.max(Desvios)]` e menorr em `r names(Desvios)[which.min(Desvios)]`, com `r round(max(Desvios),3)` e `r round(min(Desvios),3)`, respectivamente. Há evidências de diferença entre as médias dos tratamentos.
+
+# Análise de Variância
+
+**Hipóteses**\
+$H_0: \mu_1=\mu_2=\mu_3= \cdots =\mu_15$\
+$H_1: \mu_i\neq\mu'_i\qquad i \neq i'$
+
+```{r}
+mod = with(dados, aov(resp ~ Tratamento+bloco))
+av=anova(mod)
+names(av)=c("GL","SQ","QM","Teste F", "p-valor")
+kable(av, align = "l",  caption="Analise de variância", format="pandoc")
+```
+
+Como p-valor calculado (p=$`r av[1,5]`$) é `r ifelse(av[1,5]>0.05, "maior", "menor")` que o nível de significância adotado ($p=`r alfa`$), `r ifelse(av[1,5]>0.05, "não rejeita-se","rejeita-se")` $H0$. Logo, 
+`r ifelse(av[1,5]>0.05, "os tratamentos não se diferem","ao menos dois tratamentos se diferem entre si")`
+
+# Normalidade dos erros
+
+**Hipóteses**\
+$H_0$: Os erros seguem distribuição normal\
+$H_1$: Os erros não seguem distribuição normal
+
+```{r}
+(norm=shapiro.test(mod$res))
+```
+
+Como p-valor calculado (p=$`r round(norm$p.value,4)`$) é `r ifelse(norm$p.value>0.05, "maior", "menor")` que o nível de significância adotado ($\alpha=`r alfa`$), `r ifelse(norm$p.value>0.05, "não rejeita-se", "rejeita-se")` $H_O$. Logo, os erros `r ifelse(norm$p.value>0.05, "seguem", "não seguem")` distribuição normal.
+
+```{r, results='hide', fig.cap="Gráfico QQplot \\label{Fig:QQ}", fig.pos="H", fig.align='center'}
+hnp::hnp(mod, las=1, xlab="Quantis teóricos", pch=16)
+```
+
+# Homogeneidade de variâncias
+
+**Hipóteses**\
+$H_0$: As variâncias são homogêneas\
+$H_1$: As variâncias não são homogêneas
+
+```{r}
+(homog=with(dados, bartlett.test(mod$res ~ Tratamento)))
+```
+
+Como p-valor calculado (p=$`r round(homog$p.value,4)`$) é `r ifelse(homog$p.value>0.05, "maior", "menor")` que o nível de significância adotado ($p=`r alfa`$), `r ifelse(homog$p.value>0.05, "não rejeita-se", "rejeita-se")` $H_0$. Logo, as variâncias `r ifelse(homog$p.value>0.05, "são", "não são")` homogêneas.
+
+# Independência dos erros
+
+**Hipóteses**\
+$H_0$: Os erros são independentes\
+$H_1$: Os erros não são independentes
+
+```{r}
+(ind=lmtest::dwtest(mod))
+```
+
+Como p-valor calculado (p=$`r round(ind$p.value,4)`$) é `r ifelse(ind$p.value>0.05, "maior", "menor")` que o nível de significância adotado ($p=`r alfa`$), `r ifelse(homog$p.value>0.05, "não rejeita-se", "rejeita-se")` $H_0$. Logo, os erros `r ifelse(ind$p.value>0.05, "são", "não são")` independentes. A Figura \ref{fig:res} apresenta os resíduos brutos. Percebe-se que os resíduos estão distribuídos de forma totalmente aleatória, evidenciando a sua independência.
+
+```{r, fig.cap="Gráfico de resíduos brutos \\label{fig:res}", fig.pos="H", fig.align='center'}
+plot(mod$res, las=1, pch=19, col='red', ylab='Resíduos brutos')
+abline(h=0)
+```
+
+# Teste de comparações
+ 
+```{r, fig.show='hide'}
+mod.1 = easyanova::ea1(dados[,c(1,3,4)], design=2, plot=2)
+tabela=cbind(mod.1$`Adjusted means`[1],
+             mod.1$`Adjusted means`[2],
+             mod.1$`Adjusted means`[8])
+names(tabela)[1:3]=c("Cultivar","Média","")
+kable(tabela, align = 'l', booktabs=T, caption="Teste de comparação de Scott-Knott", format="pandoc", format.args = list(big.mark="."))
+```
+
+## Usando o pacote ExpDes.pt
+
+```{r}
+library(ExpDes.pt)
+with(dados,dbc(Tratamento, bloco,resp, mcomp="tukey"))
+```

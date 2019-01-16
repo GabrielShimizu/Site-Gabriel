@@ -1,0 +1,174 @@
+---
+title: "Elaboração de gráfico de barras"
+author: "Gabriel Danilo Shimizu"
+date: 2019-01-11T21:13:14-05:00
+categories: ["R"]
+tags: ["barplot"]
+output: 
+  bookdown::html_document2:
+    toc: true
+    number_sections: true
+    fig_caption: true
+    mathjax: local
+    self_contained: false
+---
+
+<style type="text/css">
+
+h1 {color: red;
+    text-align: center;
+    font-size: 35px;
+}
+
+body, td {font-size: 20px;
+      text-align: justify;
+      background-color: lightyellow;
+}
+
+.center_div {
+    border: 2px solid gray;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    background-color: lightyellow;
+    padding: 8px;
+    color: red;
+    text-align: justify;
+}
+
+code.r, pre {font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, fig.align = "center")
+```
+
+# Conjunto de dados
+```{r}
+tratamentos=rep(c(paste("T",1:5)),e=4)
+resposta=c(100,120,110,90,
+        150,145,149,165,
+        150,144,134,139,
+        220,206,210,210,
+        266,249,248,260)
+## Média e Desvio-padrão (Por Tratamento)
+media=tapply(resposta,tratamentos, mean)
+desvio=tapply(resposta,tratamentos,sd)
+```
+
+#Comando básico para gráficos de barras sem edição
+
+```{r}
+barplot(media)
+```
+
+# Edição simples de um barplot
+
+```{r}
+barplot(media, 
+        las=1,
+        col="lightyellow",
+        ylab="Resposta",
+        xlab="Tratamentos",
+        ylim=c(0,300))
+abline(h=0)
+```
+
+**Comandos**:
+
+las=1: deixar escala do eixo Y na vertical
+
+col="cor": mudar cor das barras (Ex. "red","blue","green" ou gray.colors(quantidade de tonalidades) para escala cinza ou rainbow(quantidade de cores) para escala colorida. Também é possível específicar a cor de cada barra (col=c("red","green","yellow","gray","blue"))).
+
+xlab e ylab: nomear eixo X e Y
+
+xlim e ylim: escala do eixo X e Y
+
+abline(h=0): linha na horizontal em Y=0 (No caso de vertical, abline(v=0)). É possível alterar a cor pela função "col="cor"" e o tracejado pelo "lty=número" (Ver o Help do comando)
+
+## Adicionando barras de desvio-padrão
+
+```{r}
+bar=barplot(media, 
+        las=1,
+        col="lightyellow",
+        ylab="Resposta",
+        xlab="Tratamentos",
+        ylim=c(0,300))
+abline(h=0)
+arrows(bar,media+desvio,bar,media-desvio,length = 0.1,angle=90,code=3)
+```
+
+## Adicionando unidade para o título do eixo Y (Ex. $Kg\ ha^{-1}$)
+
+```{r}
+bar=barplot(media, 
+        las=1,
+        col="lightyellow",
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab="Tratamentos",
+        ylim=c(0,300))
+abline(h=0)
+arrows(bar,media+desvio,bar,media-desvio,length = 0.1,angle=90,code=3)
+```
+
+##Adicionando a média dos tratamentos acima das barras
+
+```{r}
+bar=barplot(media, 
+        las=1,
+        col="lightyellow",
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab="Tratamentos",
+        ylim=c(0,300))
+abline(h=0)
+text(bar,media+desvio+10,media)
+arrows(bar,media+desvio,bar,media-desvio,length = 0.1,angle=90,code=3)
+
+```
+
+##Separação de casa decimal por vírgula
+
+```{r}
+options(OutDec=",")
+bar=barplot(media, 
+        las=1,
+        col="lightyellow",
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab="Tratamentos",
+        ylim=c(0,300))
+abline(h=0)
+text(bar,media+desvio+10,media)
+arrows(bar,media+desvio,bar,media-desvio,length = 0.1,angle=90,code=3)
+```
+
+## Adicionando letras do teste de comparação (Tukey)
+
+```{r}
+tukey=c("d","c","c","b","a")
+options(OutDec=",")
+bar=barplot(media, 
+        las=1,
+        col="lightyellow",
+        ylab=expression("Resposta"*" "*(kg*" "*ha^-1)),
+        xlab="Tratamentos",
+        ylim=c(0,300))
+abline(h=0)
+text(bar,media+desvio+10,paste(round(media,0),tukey))
+arrows(bar,media+desvio,bar,media-desvio,length = 0.1,angle=90,code=3)
+```
+
+# Melhor forma de salvar o gráfico
+
+A melhor forma de salvar o gráfico no R é usando a extensão tiff, pois não perde qualidade no office (Word, Excel, Powerpoint).
+
+tiff("nome do gráfico.tif",width = 8, 
+     height = 5, units = 'in', res = 300)
+
+dev.off()
+

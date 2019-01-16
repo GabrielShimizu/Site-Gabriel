@@ -1,0 +1,9 @@
+---
+title: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+Este é um website voltado para acadêmicos da Agronomia e áreas afins. Possui como finalidade fornecer e ensinar comandos básicos da linguagem estatística \textt(R), de forma a capacitar profissionais e facilitar o aprendizado deste software. 

@@ -1,0 +1,233 @@
+---
+title: "Elaboração de Gráfico de regressão"
+date: 2019-01-11T21:13:14-05:00
+categories: ["R"]
+tags: ["plot"]
+output: 
+  bookdown::html_document2:
+    toc: true
+    number_sections: true
+    fig_caption: true
+    mathjax: local
+    self_contained: false
+---
+
+
+
+<style type="text/css">
+
+h1 {color: red;
+    text-align: center;
+    font-size: 35px;
+}
+
+body, td {font-size: 20px;
+      text-align: justify;
+      background-color: lightyellow;
+}
+
+.center_div {
+    border: 2px solid gray;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    background-color: lightyellow;
+    padding: 8px;
+    color: red;
+    text-align: justify;
+}
+
+code.r, pre {font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
+
+</style>
+<div id="conjunto-de-dados" class="section level1">
+<h1>Conjunto de dados</h1>
+<pre class="r"><code>tratamentos=rep(c(0,2,4,8,16,32,64,128,256),e=4)
+resposta=c(0,1,2,4,
+           8,7,9,10,
+           15,17,18,20,
+           25,26,24,28,
+           36,39,38,40,
+           60,68,65,70,
+           100,110,104,107,
+           150,155,156,159,
+           120,130,126,124)
+## Média e Desvio-padrão (Por Tratamento)
+Dose=c(0,2,4,8,16,32,64,128,256)
+media=tapply(resposta,tratamentos, mean)
+desvio=tapply(resposta,tratamentos,sd)</code></pre>
+</div>
+<div id="comando-basico-para-graficos-de-barras-sem-edicao" class="section level1">
+<h1>Comando básico para gráficos de barras sem edição</h1>
+<pre class="r"><code>plot(media~Dose)</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="edicao-simples-de-um-grafico-de-regressao" class="section level1">
+<h1>Edição simples de um gráfico de regressão</h1>
+<pre class="r"><code>plot(media~Dose, 
+        las=1,
+        ylab=&quot;Resposta&quot;,
+        xlab=&quot;Dose&quot;)</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><strong>Comandos</strong>:</p>
+<p>las=1: deixar escala do eixo Y na vertical</p>
+<p>xlab e ylab: nomear eixo X e Y</p>
+<p>xlim e ylim: escala do eixo X e Y</p>
+<div id="adicionando-barras-de-desvio-padrao" class="section level2">
+<h2>Adicionando barras de desvio-padrão</h2>
+<pre class="r"><code>reg=plot(media~Dose, 
+        las=1,
+        ylab=&quot;Resposta&quot;,
+        xlab=&quot;Dose&quot;)
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.05,angle=90,code=3)</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Adicionando barras de desvio-padrão de largura 0.05 (length=0.05), com angulo de 90<span class="math inline">\(^o\)</span> e tipo de flecha 3 (T ou T invertido)</p>
+</div>
+<div id="adicionando-unidade-para-o-titulo-do-eixo-y-ex.-kg-ha-1-e-xex.kg-ha-1-ano-1" class="section level2">
+<h2>Adicionando unidade para o título do eixo Y (Ex. <span class="math inline">\(Kg\ ha^{-1}\)</span>) e X(Ex.<span class="math inline">\(Kg\ ha^{-1}\ ano^{-1}\)</span>)</h2>
+<pre class="r"><code>reg=plot(media~Dose, 
+        las=1,
+        ylab=expression(&quot;Resposta&quot;*&quot; &quot;*(kg*&quot; &quot;*ha^-1)),
+        xlab=expression(&quot;Dose&quot;*&quot; &quot;*(kg*&quot; &quot;*ha^-1*&quot; &quot;*ano^-1)))
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.02,angle=90,code=3)</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>A função expression também pode ser usada para textos em gráficos (Função “text()” - veremos posteriormente).</p>
+</div>
+<div id="separacao-de-casa-decimal-por-virgula" class="section level2">
+<h2>Separação de casa decimal por vírgula</h2>
+<pre class="r"><code>options(OutDec=&quot;,&quot;)
+reg=plot(media~Dose, 
+        las=1,
+        ylab=expression(&quot;Resposta&quot;*&quot; &quot;*(kg*&quot; &quot;*ha^-1)),
+        xlab=expression(&quot;Dose&quot;*&quot; &quot;*(kg*&quot; &quot;*ha^-1*&quot;&quot;*ano^-1)))
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.02,angle=90,code=3)</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>A função “options(OutDec=”,“)” converte a casa decimal de todas as saídas posteriores ao comando para vírgula, entretanto a função não altera para gráficos do pacote ggplot2.</p>
+</div>
+<div id="plotando-a-curva-de-tendencia" class="section level2">
+<h2>Plotando a curva de Tendência</h2>
+<pre class="r"><code>modelo=lm(media~Dose+I(Dose^2))
+summary(modelo)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = media ~ Dose + I(Dose^2))
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -6,0101 -2,3298  0,5233  2,3045  3,4953 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  7,7601301  1,7653406   4,396  0,00459 ** 
+## Dose         1,8811023  0,0566083  33,230 4,94e-08 ***
+## I(Dose^2)   -0,0055671  0,0002241 -24,847 2,80e-07 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0,001 &#39;**&#39; 0,01 &#39;*&#39; 0,05 &#39;.&#39; 0,1 &#39; &#39; 1
+## 
+## Residual standard error: 3,709 on 6 degrees of freedom
+## Multiple R-squared:  0,9967, Adjusted R-squared:  0,9956 
+## F-statistic: 899,4 on 2 and 6 DF,  p-value: 3,674e-08</code></pre>
+<pre class="r"><code>plot(media~Dose, 
+        las=1,ylim=c(0,200),col=&quot;red&quot;,pch=16,
+        ylab=expression(&quot;Resposta&quot;*&quot; &quot;*(kg*&quot; &quot;*ha^-1)),
+        xlab=expression(&quot;Dose&quot;*&quot; &quot;*(kg*&quot; &quot;*ha^-1*&quot;&quot;*ano^-1)))
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.02,angle=90,code=3)
+curve(modelo$coefficients[1]+modelo$coefficients[2]*x+modelo$coefficients[3]*x^2, add=T,col=&quot;blue&quot;)</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="identificando-pontos-de-maximo-no-grafico" class="section level2">
+<h2>Identificando pontos de máximo no gráfico</h2>
+<pre class="r"><code>## Para encontrar o ponto de máximo ou mínimo em equação quadrática, fazer derivada primeira de Y=0
+
+(x=-modelo$coefficients[2]/(2*modelo$coefficients[3]))</code></pre>
+<pre><code>##     Dose 
+## 168,9481</code></pre>
+<pre class="r"><code>(y=modelo$coefficients[1]+modelo$coefficients[2]*x+modelo$coefficients[3]*x^2)</code></pre>
+<pre><code>## (Intercept) 
+##    166,6644</code></pre>
+<pre class="r"><code>plot(media~Dose, 
+        las=1,ylim=c(0,200),col=&quot;red&quot;,pch=16,
+        ylab=expression(&quot;Resposta&quot;*&quot; &quot;*(kg*&quot; &quot;*ha^-1)),
+        xlab=expression(&quot;Dose&quot;*&quot; &quot;*(kg*&quot; &quot;*ha^-1*&quot;&quot;*ano^-1)))
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.02,angle=90,code=3)
+curve(modelo$coefficients[1]+modelo$coefficients[2]*x+modelo$coefficients[3]*x^2, add=T,col=&quot;blue&quot;)
+abline(h=y,col=&quot;red&quot;,lty=2)
+abline(v=x,col=&quot;red&quot;,lty=2)
+points(x,y,pch=8,col=&quot;black&quot;)</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="adicionando-a-equacao-e-o-r2-do-modelo" class="section level2">
+<h2>Adicionando a equação e o <span class="math inline">\(R^2\)</span> do modelo</h2>
+<pre class="r"><code>plot(media~Dose, 
+        las=1,ylim=c(0,200),col=&quot;red&quot;,pch=16,
+        ylab=expression(&quot;Resposta&quot;*&quot; &quot;*(kg*&quot; &quot;*ha^-1)),
+        xlab=expression(&quot;Dose&quot;*&quot; &quot;*(kg*&quot; &quot;*ha^-1*&quot;&quot;*ano^-1)))
+arrows(Dose,media+desvio,Dose,media-desvio,length = 0.02,angle=90,code=3)
+curve(modelo$coefficients[1]+modelo$coefficients[2]*x+modelo$coefficients[3]*x^2, add=T,col=&quot;blue&quot;)
+abline(h=y,col=&quot;red&quot;,lty=2)
+abline(v=x,col=&quot;red&quot;,lty=2)
+points(x,y,pch=8,col=&quot;black&quot;)
+text(100,50,expression(Y==7.76013+1.881102*x-0.005567102 *x^2),cex=0.8)
+text(100,40,expression(R^2==1.00),cex=0.8)</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="usando-o-pacote-ggplot2" class="section level1">
+<h1>Usando o pacote ggplot2</h1>
+<div id="comando-basico-para-grafico-de-dispersao-pelo-ggplot2" class="section level2">
+<h2>Comando básico para gráfico de dispersão pelo ggplot2</h2>
+<pre class="r"><code>library(ggplot2)
+dados=data.frame(Dose,media)
+ggplot(dados, aes(x=Dose, y=media)) + geom_point()</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="editando-grafico" class="section level2">
+<h2>Editando gráfico</h2>
+<pre class="r"><code>(grafico=ggplot(dados, aes(x=Dose, y=media)) + geom_point(colour=&quot;red&quot;, size=3, shape=1)+geom_smooth(method=&quot;lm&quot;, se = F, formula = y~poly(x,2), show.legend = T) +
+  labs(title = &quot;Exemplo de gráfico de regressão no ggplot2&quot;,
+       y = expression(Produtividade*(Kg*&quot; &quot;*ha^-1)), x = &quot;Dose&quot;,
+       caption = &quot;Fonte: O autor&quot;))</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>geom_point(colour=“red”, size=3, shape=1): gráfico de dispersão, com pontos de cor vermelha, de tamanho 3 e formato 2 (Círculo sem preenchimento interno)</p>
+<p>geom_smooth(method=“lm”, se = F, formula = y~poly(x,2)): Comando para plotar curva de tendência para regressão polinomial de grau 2 (Quadrático)</p>
+<p>labs= nomear os eixos e títulos dos gráficos</p>
+</div>
+<div id="criando-o-texto-do-ajuste-do-modelo-quadratico" class="section level2">
+<h2>Criando o texto do ajuste do modelo quadrático</h2>
+<pre class="r"><code>texto &lt;- sprintf(&#39;y = %.2f + %.2fx %.2fx², r² = %.2f&#39;,modelo$coefficients[1],modelo$coefficients[2],modelo$coefficients[3],summary(modelo)$r.squared)</code></pre>
+</div>
+<div id="plotando-o-texto-no-grafico" class="section level2">
+<h2>Plotando o texto no gráfico</h2>
+<pre class="r"><code>(grafico=grafico+geom_text(aes(x=x, y=y, label=texto), hjust=1, vjust=16))</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="removendo-cor-cinza-do-fundo" class="section level2">
+<h2>Removendo cor cinza do fundo</h2>
+<pre class="r"><code>(grafico=grafico+theme_bw())</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="removendo-linhas-horizontais-e-verticais" class="section level2">
+<h2>Removendo linhas horizontais e verticais</h2>
+<pre class="r"><code>(grafico=grafico+theme_classic())</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>(grafico=grafico+theme(axis.title = element_text(size = 12),
+          axis.text = element_text(size = 12)))</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="adicionando-linhas-de-ponto-de-maximo-ou-minimo" class="section level2">
+<h2>Adicionando linhas de ponto de máximo ou mínimo</h2>
+<pre class="r"><code>(grafico=grafico+geom_vline(xintercept = x, colour=&quot;red&quot;, linetype=&quot;dotted&quot;, size=1.2)+geom_hline(yintercept =y,colour=&#39;red&#39;, linetype=&#39;dotted&#39;, size=1.3))</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="tipos-de-linhas" class="section level2">
+<h2>Tipos de linhas</h2>
+<pre class="r"><code>d=data.frame(lt=c(&quot;blank&quot;, &quot;solid&quot;, &quot;dashed&quot;, &quot;dotted&quot;, &quot;dotdash&quot;, &quot;longdash&quot;, &quot;twodash&quot;, &quot;1F&quot;, &quot;F1&quot;, &quot;4C88C488&quot;, &quot;12345678&quot;))
+ggplot()+scale_x_continuous(name=&quot;&quot;,limits=c(0,1))+scale_y_discrete(name=&quot;linetype&quot;)+theme_bw()+theme_classic()+scale_linetype_identity()+geom_segment(data=d, mapping=aes(x=0, xend=1, y=d$lt, yend=d$lt, linetype=d$lt))</code></pre>
+<p><img src="/GRÁFICO_DE_REGRESSÃO_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>

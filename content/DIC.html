@@ -1,0 +1,340 @@
+---
+title: "Delineamento Inteiramente casualizado"
+author: "Gabriel Danilo Shimizu"
+date: 2019-01-11T21:13:14-05:00
+categories: ["R"]
+tags: ["dic"]
+output: 
+  bookdown::html_document2:
+    toc: true
+    number_sections: true
+    fig_caption: true
+    mathjax: local
+    self_contained: false
+---
+
+
+
+<style type="text/css">
+
+h1 {color: red;
+    text-align: center;
+    font-size: 35px;
+}
+
+body, td {font-size: 20px;
+      text-align: justify;
+      background-color: lightyellow;
+}
+
+.center_div {
+    border: 2px solid gray;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    background-color: lightyellow;
+    padding: 8px;
+    color: red;
+    text-align: justify;
+}
+
+code.r, pre {font-size: 14px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
+</style>
+<div id="conjunto-de-dados" class="section level1">
+<h1>Conjunto de dados</h1>
+<pre class="r"><code>tratamentos=rep(c(paste(&quot;T&quot;,1:5)),e=4)
+resposta=c(100,120,110,90,
+        150,145,149,165,
+        150,144,134,139,
+        220,206,210,210,
+        266,249,248,260)</code></pre>
+</div>
+<div id="analise-descritiva" class="section level1">
+<h1>Análise Descritiva</h1>
+<pre class="r"><code>## Média e Desvio-padrão (Por Tratamento)
+&quot;Média&quot;=tapply(resposta,tratamentos, mean)
+&quot;Desvio-padrão&quot;=tapply(resposta,tratamentos,sd)
+&quot;Variância&quot;=tapply(resposta,tratamentos, var)
+&quot;Máximo&quot;=tapply(resposta,tratamentos,max)
+&quot;Mínimo&quot;=tapply(resposta,tratamentos, min)
+Mediana=tapply(resposta,tratamentos,median)
+descritiva=cbind(`Média`,
+                 `Desvio-padrão`, 
+                 `Variância`, 
+                 `Máximo`, 
+                 `Mínimo`, 
+                 Mediana)</code></pre>
+<pre class="r"><code>kable(round(descritiva,2), align=&quot;l&quot;, caption = &quot;Análise Descritiva dos dados por tratamento \\label{Fig1}&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-3">Table 1: </span>Análise Descritiva dos dados por tratamento </caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Média</th>
+<th align="left">Desvio-padrão</th>
+<th align="left">Variância</th>
+<th align="left">Máximo</th>
+<th align="left">Mínimo</th>
+<th align="left">Mediana</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>T 1</td>
+<td align="left">105,00</td>
+<td align="left">12,91</td>
+<td align="left">166,67</td>
+<td align="left">120</td>
+<td align="left">90</td>
+<td align="left">105,0</td>
+</tr>
+<tr class="even">
+<td>T 2</td>
+<td align="left">152,25</td>
+<td align="left">8,77</td>
+<td align="left">76,92</td>
+<td align="left">165</td>
+<td align="left">145</td>
+<td align="left">149,5</td>
+</tr>
+<tr class="odd">
+<td>T 3</td>
+<td align="left">141,75</td>
+<td align="left">6,85</td>
+<td align="left">46,92</td>
+<td align="left">150</td>
+<td align="left">134</td>
+<td align="left">141,5</td>
+</tr>
+<tr class="even">
+<td>T 4</td>
+<td align="left">211,50</td>
+<td align="left">5,97</td>
+<td align="left">35,67</td>
+<td align="left">220</td>
+<td align="left">206</td>
+<td align="left">210,0</td>
+</tr>
+<tr class="odd">
+<td>T 5</td>
+<td align="left">255,75</td>
+<td align="left">8,73</td>
+<td align="left">76,25</td>
+<td align="left">266</td>
+<td align="left">248</td>
+<td align="left">254,5</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="grafico-de-caixas-boxplot" class="section level1">
+<h1>Gráfico de Caixas (<em>Boxplot</em>)</h1>
+<pre class="r"><code>car::Boxplot(resposta~tratamentos,
+             las=1,
+             col=&quot;lightblue&quot;, xlab=&quot;&quot;,
+             ylab=expression(&quot;Produtividade&quot;*&quot; &quot;* (Kg*&quot; &quot;*ha^-1)))
+points(`Média`,col=&quot;red&quot;, pch=8)
+stripchart(resposta ~ tratamentos, pch=20, vertical=T, cex=1, col=&quot;blue&quot;, add=T)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-4"></span>
+<img src="/DIC_files/figure-html/unnamed-chunk-4-1.png" alt="Gráfico de caixas  (*Boxplot*) \label{Fig3}" width="672" />
+<p class="caption">
+Figure 1: Gráfico de caixas (<em>Boxplot</em>) 
+</p>
+</div>
+</div>
+<div id="analise-de-variancia" class="section level1">
+<h1>Análise de Variância</h1>
+<p>Hipóteses:</p>
+<span class="math display">\[\begin{eqnarray*}
+\left\{
+\begin{array}{ll}
+H_0: &amp; \mu_1 = \mu_2 = \mu_3 =\mu_4 =\mu_5\\[.2cm]
+H_1: &amp; \mu_i \neq \mu_i&#39; \qquad i \neq i&#39;.
+\end{array}
+\right.
+\end{eqnarray*}\]</span>
+<p><span class="math inline">\(H_0: \mu_1=\mu_2=\mu_3=\mu_4=\mu_5\)</span><br />
+<span class="math inline">\(H_1: \mu_i\neq\mu&#39;_i \qquad i\neq i&#39;\)</span></p>
+<pre class="r"><code>modelo=aov(resposta~tratamentos)
+anova=anova(modelo)</code></pre>
+<pre class="r"><code>kable(anova, align=&quot;l&quot;, caption = &quot;Análise de Variância \\label{Fig2}&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-6">Table 2: </span>Análise de Variância </caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="left">Df</th>
+<th align="left">Sum Sq</th>
+<th align="left">Mean Sq</th>
+<th align="left">F value</th>
+<th align="left">Pr(&gt;F)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>tratamentos</td>
+<td align="left">4</td>
+<td align="left">57442,50</td>
+<td align="left">14360,62500</td>
+<td align="left">178,4298</td>
+<td align="left">0</td>
+</tr>
+<tr class="even">
+<td>Residuals</td>
+<td align="left">15</td>
+<td align="left">1207,25</td>
+<td align="left">80,48333</td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<p>Como o p-valor calculado (<span class="math inline">\(p=1,8747417\times 10^{-12}\)</span>) é menor que o nível de significância adotado (<span class="math inline">\(\alpha=0,05\)</span>), rejeita <span class="math inline">\(H_0\)</span>. Logo, ao menos dois tratamentos se diferem entre si.</p>
+</div>
+<div id="pressuposicoes-da-analise-de-variancia" class="section level1">
+<h1>Pressuposições da Análise de Variância</h1>
+<div id="normalidade-dos-erros" class="section level2">
+<h2>Normalidade dos erros</h2>
+<span class="math display">\[\begin{eqnarray*}
+\left\{
+\begin{array}{ll}
+H_0: &amp; \mbox{ Os erros têm distribuição normal} \\[.2cm]
+H_1: &amp; \mbox{ Os erros não têm distribuição normal}.
+\end{array}
+\right.
+\end{eqnarray*}\]</span>
+<pre class="r"><code>(norm=shapiro.test(modelo$res))</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  modelo$res
+## W = 0,95788, p-value = 0,5023</code></pre>
+<p>Como p-valor calculado (<span class="math inline">\(p=0,5023389\)</span>) é maior que o nível de significância adotado (<span class="math inline">\(\alpha=0,05\)</span>), não se rejeita <span class="math inline">\(H_0\)</span>. Logo, os erros seguem distribuição normal.</p>
+<p>Obs. No texto acima, o p-valor, e a rejeição ou não da hipótese foram gerados pelo comando do R diretamente no texto, com os seguintes comandos.</p>
+<pre class="r"><code>#$p=`r norm$p.value`$</code></pre>
+<pre class="r"><code>#`r ifelse(norm$p.value&gt;0.05, &quot;maior&quot;, &quot;menor&quot;)`</code></pre>
+<pre class="r"><code>#`r ifelse(norm$p.value&gt;0.05, &quot;seguem&quot;, &quot;não seguem&quot;)`</code></pre>
+<p>Obs. Desconsiderar “#”, os demais pressupostos também foram utilizados o mesmo princípio do “ifelse” nos textos</p>
+<div id="grafico-de-normalidade" class="section level3">
+<h3>Gráfico de normalidade</h3>
+<pre class="r"><code>HNP=hnp::hnp(modelo, paint.on=T, col=&quot;red&quot; , las=1, pch=8)</code></pre>
+<pre class="r"><code>plot(HNP,lty=c(2,3,2),  col=c(2,1,2,1))</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-12"></span>
+<img src="/DIC_files/figure-html/unnamed-chunk-12-1.png" alt="Gráfico de normalidade \label{Fig2}" width="672" />
+<p class="caption">
+Figure 2: Gráfico de normalidade 
+</p>
+</div>
+</div>
+</div>
+<div id="homogeneidade-de-variancias" class="section level2">
+<h2>Homogeneidade de variâncias</h2>
+<span class="math display">\[\begin{eqnarray*}
+\left\{
+\begin{array}{ll}
+H_0: &amp; \mbox{ As variâncias são homogêneas} \\[.2cm]
+H_1: &amp; \mbox{ As variâncias não são homogêneas}.
+\end{array}
+\right.
+\end{eqnarray*}\]</span>
+<pre class="r"><code>(homog=bartlett.test(modelo$res~tratamentos))</code></pre>
+<pre><code>## 
+##  Bartlett test of homogeneity of variances
+## 
+## data:  modelo$res by tratamentos
+## Bartlett&#39;s K-squared = 1,9189, df = 4, p-value = 0,7507</code></pre>
+<p>Como p-valor calculado (<span class="math inline">\(p=0,7506686\)</span>) é maior que o nível de significância adotado (<span class="math inline">\(\alpha=0,05\)</span>), não se rejeita <span class="math inline">\(H_0\)</span>. Logo, as variâncias são homogêneas.</p>
+</div>
+<div id="independencias-dos-erros" class="section level2">
+<h2>Independências dos erros</h2>
+<span class="math display">\[\begin{eqnarray*}
+\left\{
+\begin{array}{ll}
+H_0: &amp; \mbox{ Os erros são independentes;} \\[.2cm]
+H_1: &amp; \mbox{ Os erros não são independentes.}
+\end{array}
+\right.
+\end{eqnarray*}\]</span>
+<pre class="r"><code>library(lmtest)
+ind=dwtest(modelo)</code></pre>
+<p>Como p-valor calculado (<span class="math inline">\(p=0,1738058\)</span>) é maior que o nível de significância adotado (<span class="math inline">\(\alpha=0,05\)</span>), não se rejeita <span class="math inline">\(H_0\)</span>. Logo, os erros são independentes. A Figura  apresenta o gráfico dos resíduos brutos. Percebe-se que os resíduos estão distribuídos de forma totalmente aleatório, evidenciando a independência dos erros.</p>
+<pre class="r"><code>plot(modelo$res, col=&quot;blue&quot;,
+     las=1, pch=16,
+     ylab=&quot;Residuos brutos&quot;)
+abline(h=0, col=&quot;red&quot;, lwd=2)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-15"></span>
+<img src="/DIC_files/figure-html/unnamed-chunk-15-1.png" alt="Resíduos brutos \label{Fig3}" width="672" />
+<p class="caption">
+Figure 3: Resíduos brutos 
+</p>
+</div>
+</div>
+</div>
+<div id="teste-de-comparacao-multipla-de-tukey" class="section level1">
+<h1>Teste de Comparação Múltipla de Tukey</h1>
+<pre class="r"><code>(dados=data.frame(tratamentos,resposta))
+mod1=easyanova::ea1(dados, design = 1)</code></pre>
+<pre class="r"><code>tabela=cbind(mod1$Means[1],
+      mod1$Means[2], 
+      mod1$Means[4])
+names(tabela)[1:3]=c(&quot;Tratamento&quot;,&quot;Média&quot;,&quot;&quot;)
+tabela</code></pre>
+<pre class="r"><code>kable(tabela, align = &quot;l&quot;, caption = &quot;Teste de Tukey \\label{tabt}&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-17">Table 3: </span>Teste de Tukey </caption>
+<thead>
+<tr class="header">
+<th align="left">Tratamento</th>
+<th align="left">Média</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">T 5</td>
+<td align="left">255,75</td>
+<td>a</td>
+</tr>
+<tr class="even">
+<td align="left">T 4</td>
+<td align="left">211,50</td>
+<td>b</td>
+</tr>
+<tr class="odd">
+<td align="left">T 2</td>
+<td align="left">152,25</td>
+<td>c</td>
+</tr>
+<tr class="even">
+<td align="left">T 3</td>
+<td align="left">141,75</td>
+<td>c</td>
+</tr>
+<tr class="odd">
+<td align="left">T 1</td>
+<td align="left">105,00</td>
+<td>d</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>tukey=c(&quot;d&quot;,&quot;c&quot;,&quot;c&quot;,&quot;b&quot;,&quot;a&quot;)
+box=car::Boxplot(resposta~tratamentos,
+             las=1,ylim=c(50,300),
+             col=&quot;lightblue&quot;, xlab=&quot;&quot;,
+             ylab=expression(&quot;Produtividade&quot;*&quot; &quot;* (Kg*&quot; &quot;*ha^-1)))
+points(`Média`,col=&quot;red&quot;, pch=8)
+text(c(1:5),
+     `Média`+`Desvio-padrão`+10,
+     paste(`Média`,tukey))</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-18"></span>
+<img src="/DIC_files/figure-html/unnamed-chunk-18-1.png" alt="Gráfico de caixas  (*Boxplot*) com letras do Teste de Tukey \label{Fig4}" width="672" />
+<p class="caption">
+Figure 4: Gráfico de caixas (<em>Boxplot</em>) com letras do Teste de Tukey 
+</p>
+</div>
+</div>
